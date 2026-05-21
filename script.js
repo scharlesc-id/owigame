@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playClickSound();
         
         // 50% chance for special sound
-        const isSpecialSound = Math.random() < 0.5;
+        const isSpecialSound = Math.random() < 0.05;
         
         if (isSpecialSound) {
             playSpecialSound();
