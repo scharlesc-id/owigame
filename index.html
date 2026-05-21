@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herta Kuru Kuru - Simulator Lokal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #000000; /* Hitam pekat */
+            color: #ffffff; /* Putih bersih */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Bayangan putih halus */
+        }
+
+        p {
+            color: #888888; /* Abu-abu medium */
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .counter-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px 40px;
+            border-radius: 0px; /* Diubah kotak tegas tanpa lengkungan agar lebih estetik monokrom */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            margin-bottom: 30px;
+        }
+
+        .counter-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #888888;
+        }
+
+        .counter-value {
+            font-size: 4.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+            color: #ffffff;
+        }
+
+        .kuru-btn {
+            background: #ffffff; /* Putih penuh */
+            color: #000000; /* Tulisan hitam */
+            border: 2px solid #ffffff;
+            padding: 15px 45px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 0px; /* Desain kotak minimalis */
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .kuru-btn:hover {
+            background: #000000; /* Warna bertukar saat diarahkan kursor (Invert) */
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+        }
+
+        .kuru-btn:active {
+            transform: scale(0.95);
+        }
+
+        .herta-animation {
+            position: absolute;
+            bottom: 10%;
+            right: -200px;
+            width: 180px;
+            height: auto;
+            pointer-events: none;
+            z-index: 5;
+            /* Efek magis: Membuat gambar GIF Herta otomatis menjadi Hitam Putih murni */
+            filter: grayscale(100%) contrast(120%); 
+            opacity: 0.85; /* Sedikit transparan agar menyatu dengan latar belakang hitam */
+            animation: walkLeft 1.5s linear forwards;
+        }
+
+        @keyframes walkLeft {
+            0% {
+                right: -200px;
+                transform: rotate(0deg);
+            }
+            100% {
+                right: 100%;
+                transform: rotate(-360deg);
+            }
+        }
+</style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Mas Owi~</h1>
+        <p>Saya Akan Lawan! Klik Sampai 1000× Untuk<br>Mendapatkan Haidah</p>
+
+        <div class="counter-box">
+            <div class="counter-label">Owi telah berputar sebanyak</div>
+            <div class="counter-value" id="counter">0</div>
+        </div>
+
+        <button class="kuru-btn" id="kuruBtn">Klik</button>
+    </div>
+
+    <script>
+        const counterEl = document.getElementById('counter');
+        const kuruBtn = document.getElementById('kuruBtn');
+
+        const hertaGif = "https://i.pinimg.com/564x/6e/0f/05/6e0f057d6d82cb6a1f1054c2b3504f92.jpg";
+        
+        // Membaca file audio lokal di folder yang sama
+        const audioSources = [
+            "lawan.mp3",
+            "hidup.mp3",
+            "kaget.mp3"
+        ];
+
+        let count = parseInt(localStorage.getItem('herta_count')) || 0;
+        counterEl.textContent = count;
+
+        kuruBtn.addEventListener('click', () => {
+            count++;
+            counterEl.textContent = count;
+            localStorage.setItem('herta_count', count);
+
+            const randomAudioSrc = audioSources[Math.floor(Math.random() * audioSources.length)];
+            const audio = new Audio(randomAudioSrc);
+            audio.play();
+
+            createHertaSpur();
+        });
+
+        function createHertaSpur() {
+            const img = document.createElement('img');
+            img.src = hertaGif;
+            img.classList.add('herta-animation');
+
+            const randomBottom = Math.floor(Math.random() * 20) + 5;
+            img.style.bottom = `${randomBottom}%`;
+
+            document.body.appendChild(img);
+
+            setTimeout(() => {
+                img.remove();
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
