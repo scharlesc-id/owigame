@@ -5,6 +5,7 @@ let gameState = {
     pointsPerClick: 1,
     upgradeLevel: 1,
     upgradeCost: 10000,
+    weeklyPoints: 0, // Ditambahkan untuk melacak poin mingguan secara lokal
     userId: null
 };
 
@@ -131,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Add points
         gameState.totalPoints += gameState.pointsPerClick;
+        gameState.weeklyPoints += gameState.pointsPerClick;
         
         // Show floating image
         showFloatingImage();
@@ -138,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update display
         updateDisplay();
         
-        // Save to Firebase
+        // Save to Supabase
         await savePlayerData();
     });
     
@@ -156,15 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Play video
         secretVideo.currentTime = 0;
         secretVideo.play().catch(() => {
-            // Fallback jika video tidak tersedia
             console.log('Video tidak tersedia, bonus tetap diberikan');
         });
         
         // Hide overlay after 3 seconds
-        setTimeout(() => {
+        setTimeout(async () => {
             videoOverlay.classList.remove('active');
+            gameState.weeklyPoints += gameState.pointsPerClick; // Meniru hit ekstra dari struktur lama
             updateDisplay();
-            savePlayerData();
+            await savePlayerData();
         }, 3000);
     }
     
@@ -259,86 +261,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 2000);
     }
     
-    // Firebase Operations
+    // Supabase Operations
     async function initializePlayerData() {
-        const userRef = window.firebaseDoc(window.firebaseDB, 'players', gameState.userId);
-        const userDoc = await window.firebaseGetDoc(userRef);
+        const { data, error } = await window.supabase
+            .from('players')
+            .select('*')
+            .eq('id', gameState.userId)
+            .maybeSingle();
+            
+        if (error) throw error;
         
-        if (!userDoc.exists()) {
-            await window.firebaseSetDoc(userRef, {
-                name: gameState.playerName,
-                totalPoints: 0,
-                pointsPerClick: 1,
-                upgradeLevel: 1,
-                upgradeCost: 10000,
-                weeklyPoints: 0,
-                lastWeekReset: getCurrentWeek(),
-                createdAt: window.firebaseServerTimestamp(),
-                lastUpdated: window.firebaseServerTimestamp()
-            });
+        if (!data) {
+            const { error: insertError } = await window.supabase
+                .from('players')
+                .insert([{
+                    id: gameState.userId,
+                    name: gameState.playerName,
+                    total_points: 0,
+                    points_per_click: 1,
+                    upgrade_level: 1,
+                    upgrade_cost: 10000,
+                    weekly_points: 0,
+                    last_week_reset: getCurrentWeek()
+                }]);
+                
+            if (insertError) throw insertError;
         } else {
-            const data = userDoc.data();
-            gameState.totalPoints = data.totalPoints || 0;
-            gameState.pointsPerClick = data.pointsPerClick || 1;
-            gameState.upgradeLevel = data.upgradeLevel || 1;
-            gameState.upgradeCost = data.upgradeCost || 10000;
+            gameState.totalPoints = data.total_points || 0;
+            gameState.pointsPerClick = data.points_per_click || 1;
+            gameState.upgradeLevel = data.upgrade_level || 1;
+            gameState.upgradeCost = data.upgrade_cost || 10000;
+            gameState.weeklyPoints = data.weekly_points || 0;
             
             // Check weekly reset
-            if (data.lastWeekReset !== getCurrentWeek()) {
+            if (data.last_week_reset !== getCurrentWeek()) {
                 // Save previous week's top score
                 await saveWeeklyTopScore(data);
                 
                 // Reset weekly points
-                await window.firebaseUpdateDoc(userRef, {
-                    weeklyPoints: 0,
-                    lastWeekReset: getCurrentWeek(),
-                    lastUpdated: window.firebaseServerTimestamp()
-                });
+                const { error: updateError } = await window.supabase
+                    .from('players')
+                    .update({
+                        weekly_points: 0,
+                        last_week_reset: getCurrentWeek(),
+                        last_updated: new Date().toISOString()
+                    })
+                    .eq('id', gameState.userId);
+                    
+                if (updateError) throw updateError;
+                gameState.weeklyPoints = 0;
             }
         }
     }
     
     async function savePlayerData() {
-        const userRef = window.firebaseDoc(window.firebaseDB, 'players', gameState.userId);
-        await window.firebaseUpdateDoc(userRef, {
-            totalPoints: gameState.totalPoints,
-            pointsPerClick: gameState.pointsPerClick,
-            upgradeLevel: gameState.upgradeLevel,
-            upgradeCost: gameState.upgradeCost,
-            weeklyPoints: window.firebaseIncrement(gameState.pointsPerClick),
-            lastUpdated: window.firebaseServerTimestamp()
-        });
+        await window.supabase
+            .from('players')
+            .update({
+                total_points: gameState.totalPoints,
+                points_per_click: gameState.pointsPerClick,
+                upgrade_level: gameState.upgradeLevel,
+                upgrade_cost: gameState.upgradeCost,
+                weekly_points: gameState.weeklyPoints,
+                last_updated: new Date().toISOString()
+            })
+            .eq('id', gameState.userId);
     }
     
     async function saveWeeklyTopScore(oldData) {
-        const topScoreRef = window.firebaseDoc(
-            window.firebaseDB, 
-            'weeklyTopScores', 
-            `${oldData.lastWeekReset}_${gameState.userId}`
-        );
-        
-        await window.firebaseSetDoc(topScoreRef, {
-            name: oldData.name,
-            points: oldData.weeklyPoints || 0,
-            week: oldData.lastWeekReset,
-            timestamp: window.firebaseServerTimestamp()
-        });
+        await window.supabase
+            .from('weekly_top_scores')
+            .insert([{
+                id: `${oldData.last_week_reset}_${gameState.userId}`,
+                name: oldData.name,
+                points: oldData.weekly_points || 0,
+                week: oldData.last_week_reset
+            }]);
     }
     
     // Leaderboard Functions
-    let leaderboardUnsubscribe = null;
+    let leaderboardChannel = null;
     
     function startLeaderboardListener() {
-        const weeklyQuery = window.firebaseQuery(
-            window.firebaseCollection(window.firebaseDB, 'players'),
-            window.firebaseOrderBy('weeklyPoints', 'desc'),
-            window.firebaseLimit(10)
-        );
-        
-        leaderboardUnsubscribe = window.firebaseOnSnapshot(weeklyQuery, (snapshot) => {
-            // Real-time update tersedia jika diperlukan
-            // Tidak perlu refresh manual
-        });
+        // Berlangganan perubahan data secara real-time di Supabase
+        leaderboardChannel = window.supabase
+            .channel('schema-db-changes')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'players' },
+                (payload) => {
+                    // Real-time update tersedia jika diperlukan.
+                    // Kamu bisa memanggil loadLeaderboard() di sini jika ingin leaderboard otomatis refresh saat ada yang klik.
+                }
+            )
+            .subscribe();
     }
     
     async function loadLeaderboard() {
@@ -346,17 +362,17 @@ document.addEventListener('DOMContentLoaded', () => {
         leaderboardList.innerHTML = '<div class="loading">Memuat data...</div>';
         
         try {
-            const weeklyQuery = window.firebaseQuery(
-                window.firebaseCollection(window.firebaseDB, 'players'),
-                window.firebaseOrderBy('weeklyPoints', 'desc'),
-                window.firebaseLimit(10)
-            );
+            const { data, error } = await window.supabase
+                .from('players')
+                .select('name, weekly_points')
+                .order('weekly_points', { ascending: false })
+                .limit(10);
+                
+            if (error) throw error;
             
-            const querySnapshot = await window.firebaseGetDocs(weeklyQuery);
             leaderboardList.innerHTML = '';
             
-            querySnapshot.forEach((doc, index) => {
-                const data = doc.data();
+            data.forEach((player, index) => {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = `leaderboard-item ${index === 0 ? 'top-1' : ''}`;
                 
@@ -370,14 +386,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 playerDiv.innerHTML = `
                     <span class="leaderboard-rank">${rankEmoji}</span>
-                    <span class="leaderboard-name">${data.name}</span>
-                    <span class="leaderboard-points">${(data.weeklyPoints || 0).toLocaleString()} pts</span>
+                    <span class="leaderboard-name">${player.name}</span>
+                    <span class="leaderboard-points">${(player.weekly_points || 0).toLocaleString()} pts</span>
                 `;
                 
                 leaderboardList.appendChild(playerDiv);
             });
             
-            if (querySnapshot.empty) {
+            if (!data || data.length === 0) {
                 leaderboardList.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Belum ada pemain minggu ini</div>';
             }
         } catch (error) {
@@ -417,8 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
-        if (leaderboardUnsubscribe) {
-            leaderboardUnsubscribe();
+        if (leaderboardChannel) {
+            window.supabase.removeChannel(leaderboardChannel);
         }
     });
 });
