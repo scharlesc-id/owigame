@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Login Screen -->
     <div id="loginScreen" class="screen active">
         <div class="container">
             <div class="logo">
@@ -22,9 +21,7 @@
         </div>
     </div>
 
-    <!-- Game Screen -->
     <div id="gameScreen" class="screen">
-        <!-- Header -->
         <header class="game-header">
             <div class="player-info">
                 <span class="player-name" id="displayName"></span>
@@ -39,7 +36,6 @@
             </div>
         </header>
 
-        <!-- Main Game Area -->
         <main class="game-area">
             <div class="click-zone" id="clickZone">
                 <div class="click-circle">
@@ -49,7 +45,6 @@
                 <div class="floating-image" id="floatingImage"></div>
             </div>
             
-            <!-- Video Overlay untuk Secret Sound -->
             <div class="video-overlay" id="videoOverlay">
                 <video id="secretVideo" autoplay muted>
                     <source src="secret-sound.mp4" type="video/mp4">
@@ -58,14 +53,12 @@
             </div>
         </main>
 
-        <!-- Level Info -->
         <div class="level-info">
             <span>Level Upgrade: <strong id="upgradeLevel">1</strong></span>
             <span>Next Upgrade: <strong id="nextUpgradeCost">10000</strong> pts</span>
         </div>
     </div>
 
-    <!-- Shop Modal -->
     <div id="shopModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -88,7 +81,6 @@
         </div>
     </div>
 
-    <!-- Leaderboard Modal -->
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -104,42 +96,19 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Konfigurasi Supabase (GANTI DENGAN URL & KEY PROJEK KAMU)
+        const supabaseUrl = 'https://ktqdxonzxrielodmzqtb.supabase.co';
+        const supabaseKey = 'sb_publishable_irVVjDNfQw1ZMDDiMKrM7g_q6ZADV-O';
         
-        // Konfigurasi Firebase (GANTI DENGAN KONFIGURASI ANDA)
-         const firebaseConfig = {
-    apiKey: "AIzaSyAUzAP9DKp7CdRbVXpOo73VJhdcFTW3HJI",
-    authDomain: "owi-game.firebaseapp.com",
-    projectId: "owi-game",
-    storageBucket: "owi-game.firebasestorage.app",
-    messagingSenderId: "477452421326",
-    appId: "1:477452421326:web:488b718154f1615ff9e89f"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Inisialisasi Supabase Client
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         
-        // Export untuk digunakan di script.js
-        window.firebaseDB = db;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
-        window.firebaseUpdateDoc = updateDoc;
-        window.firebaseIncrement = increment;
-        window.firebaseCollection = collection;
-        window.firebaseQuery = query;
-        window.firebaseOrderBy = orderBy;
-        window.firebaseLimit = limit;
-        window.firebaseGetDocs = getDocs;
-        window.firebaseOnSnapshot = onSnapshot;
-        window.firebaseServerTimestamp = serverTimestamp;
+        // Sediakan secara global untuk script.js
+        window.supabase = supabaseClient;
     </script>
     
     <script src="script.js"></script>
