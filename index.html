@@ -18,13 +18,14 @@
             <div class="login-form">
                 <input type="text" id="playerName" placeholder="Masukkan nama kamu" maxlength="20" required>
                 <button id="startBtn" class="btn-primary">MULAI BERMAIN</button>
+                <button id="switchPlayerBtn" class="btn-secondary">GANTI PEMAIN</button>
+                <div id="savedPlayers" class="saved-players"></div>
             </div>
         </div>
     </div>
 
     <!-- Game Screen -->
     <div id="gameScreen" class="screen">
-        <!-- Header -->
         <header class="game-header">
             <div class="player-info">
                 <span class="player-name" id="displayName"></span>
@@ -36,10 +37,10 @@
             <div class="header-actions">
                 <button id="shopBtn" class="btn-icon">🛒</button>
                 <button id="leaderboardBtn" class="btn-icon">🏆</button>
+                <button id="logoutBtn" class="btn-icon">🚪</button>
             </div>
         </header>
 
-        <!-- Main Game Area -->
         <main class="game-area">
             <div class="click-zone" id="clickZone">
                 <div class="click-circle">
@@ -49,18 +50,14 @@
                 <div class="floating-image" id="floatingImage"></div>
             </div>
             
-            <!-- Video Overlay untuk Secret Sound -->
             <div class="video-overlay" id="videoOverlay">
-                <video id="secretVideo" autoplay muted>
-                    <source src="secret-sound.mp4" type="video/mp4">
-                </video>
+                <div class="video-placeholder">🎬</div>
                 <div class="bonus-text" id="bonusText"></div>
             </div>
         </main>
 
-        <!-- Level Info -->
         <div class="level-info">
-            <span>Level Upgrade: <strong id="upgradeLevel">1</strong></span>
+            <span>Level: <strong id="upgradeLevel">1</strong></span>
             <span>Next Upgrade: <strong id="nextUpgradeCost">10000</strong> pts</span>
         </div>
     </div>
@@ -76,8 +73,8 @@
                 <div class="shop-item">
                     <div class="item-info">
                         <h3>Click Upgrade</h3>
-                        <p>Level saat ini: <span id="shopCurrentLevel">1</span></p>
-                        <p>Points per click: <span id="shopCurrentPoints">1</span></p>
+                        <p>Level: <span id="shopCurrentLevel">1</span></p>
+                        <p>Points/click: <span id="shopCurrentPoints">1</span></p>
                     </div>
                     <button id="upgradeBtn" class="btn-upgrade">
                         UPGRADE
@@ -92,56 +89,18 @@
     <div id="leaderboardModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🏆 LEADERBOARD MINGGUAN</h2>
+                <h2>🏆 LEADERBOARD</h2>
                 <button class="close-btn" id="closeLeaderboard">✕</button>
             </div>
-            <div class="leaderboard-list" id="leaderboardList">
-                <div class="loading">Memuat data...</div>
-            </div>
+            <div class="leaderboard-list" id="leaderboardList"></div>
             <div class="leaderboard-timer">
-                Reset dalam: <span id="countdownTimer">6 hari 23:59:59</span>
+                <button id="resetLeaderboardBtn" class="btn-reset">🔄 Reset Mingguan</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-        
-        // Konfigurasi Firebase (GANTI DENGAN KONFIGURASI ANDA)
-         const firebaseConfig = {
-    apiKey: "AIzaSyAUzAP9DKp7CdRbVXpOo73VJhdcFTW3HJI",
-    authDomain: "owi-game.firebaseapp.com",
-    projectId: "owi-game",
-    storageBucket: "owi-game.firebasestorage.app",
-    messagingSenderId: "477452421326",
-    appId: "1:477452421326:web:488b718154f1615ff9e89f"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Export untuk digunakan di script.js
-        window.firebaseDB = db;
-        window.firebaseDoc = doc;
-        window.firebaseSetDoc = setDoc;
-        window.firebaseGetDoc = getDoc;
-        window.firebaseUpdateDoc = updateDoc;
-        window.firebaseIncrement = increment;
-        window.firebaseCollection = collection;
-        window.firebaseQuery = query;
-        window.firebaseOrderBy = orderBy;
-        window.firebaseLimit = limit;
-        window.firebaseGetDocs = getDocs;
-        window.firebaseOnSnapshot = onSnapshot;
-        window.firebaseServerTimestamp = serverTimestamp;
-    </script>
-    
     <script src="script.js"></script>
 </body>
 </html>
