@@ -3,177 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herta Kuru Kuru - Simulator Lokal</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #000000; /* Hitam pekat */
-            color: #ffffff; /* Putih bersih */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .container {
-            text-align: center;
-            z-index: 10;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2); /* Bayangan putih halus */
-        }
-
-        p {
-            color: #888888; /* Abu-abu medium */
-            margin-bottom: 30px;
-            font-size: 1rem;
-        }
-
-        .counter-box {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 20px 40px;
-            border-radius: 0px; /* Diubah kotak tegas tanpa lengkungan agar lebih estetik monokrom */
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
-            margin-bottom: 30px;
-        }
-
-        .counter-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: #888888;
-        }
-
-        .counter-value {
-            font-size: 4.5rem;
-            font-weight: bold;
-            margin-top: 5px;
-            color: #ffffff;
-        }
-
-        .kuru-btn {
-            background: #ffffff; /* Putih penuh */
-            color: #000000; /* Tulisan hitam */
-            border: 2px solid #ffffff;
-            padding: 15px 45px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-radius: 0px; /* Desain kotak minimalis */
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-            transition: all 0.2s ease;
-        }
-
-        .kuru-btn:hover {
-            background: #000000; /* Warna bertukar saat diarahkan kursor (Invert) */
-            color: #ffffff;
-            border: 2px solid #ffffff;
-            box-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
-        }
-
-        .kuru-btn:active {
-            transform: scale(0.95);
-        }
-
-        .herta-animation {
-            position: absolute;
-            bottom: 10%;
-            right: -200px;
-            width: 180px;
-            height: auto;
-            pointer-events: none;
-            z-index: 5;
-            /* Efek magis: Membuat gambar GIF Herta otomatis menjadi Hitam Putih murni */
-            filter: grayscale(100%) contrast(120%); 
-            opacity: 0.85; /* Sedikit transparan agar menyatu dengan latar belakang hitam */
-            animation: walkLeft 1.5s linear forwards;
-        }
-
-        @keyframes walkLeft {
-            0% {
-                right: -200px;
-                transform: rotate(0deg);
-            }
-            100% {
-                right: 100%;
-                transform: rotate(-360deg);
-            }
-        }
-</style>
+    <title>OWI Game - Click & Earn</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <div class="container">
-        <h1>Mas Owi~</h1>
-        <p>Saya Akan Lawan! Klik Sampai 1000× Untuk<br>Mendapatkan Haidah</p>
-
-        <div class="counter-box">
-            <div class="counter-label">Owi telah berputar sebanyak</div>
-            <div class="counter-value" id="counter">0</div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="container">
+            <div class="logo">
+                <h1>OWI</h1>
+                <p class="subtitle">Click & Earn Game</p>
+            </div>
+            <div class="login-form">
+                <input type="text" id="playerName" placeholder="Masukkan nama kamu" maxlength="20" required>
+                <button id="startBtn" class="btn-primary">MULAI BERMAIN</button>
+            </div>
         </div>
-
-        <button class="kuru-btn" id="kuruBtn">Klik</button>
     </div>
 
-    <script>
-        const counterEl = document.getElementById('counter');
-        const kuruBtn = document.getElementById('kuruBtn');
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="player-info">
+                <span class="player-name" id="displayName"></span>
+                <div class="points-display">
+                    <span class="points-label">POINTS</span>
+                    <span class="points-value" id="totalPoints">0</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="shopBtn" class="btn-icon">🛒</button>
+                <button id="leaderboardBtn" class="btn-icon">🏆</button>
+            </div>
+        </header>
 
-        const hertaGif = "https://i.pinimg.com/564x/6e/0f/05/6e0f057d6d82cb6a1f1054c2b3504f92.jpg";
+        <!-- Main Game Area -->
+        <main class="game-area">
+            <div class="click-zone" id="clickZone">
+                <div class="click-circle">
+                    <span class="click-text">CLICK</span>
+                    <span class="click-subtext" id="pointsPerClick">+1</span>
+                </div>
+                <div class="floating-image" id="floatingImage"></div>
+            </div>
+            
+            <!-- Video Overlay untuk Secret Sound -->
+            <div class="video-overlay" id="videoOverlay">
+                <video id="secretVideo" autoplay muted>
+                    <source src="secret-sound.mp4" type="video/mp4">
+                </video>
+                <div class="bonus-text" id="bonusText"></div>
+            </div>
+        </main>
+
+        <!-- Level Info -->
+        <div class="level-info">
+            <span>Level Upgrade: <strong id="upgradeLevel">1</strong></span>
+            <span>Next Upgrade: <strong id="nextUpgradeCost">10000</strong> pts</span>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shopModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>UPGRADE SHOP</h2>
+                <button class="close-btn" id="closeShop">✕</button>
+            </div>
+            <div class="shop-items">
+                <div class="shop-item">
+                    <div class="item-info">
+                        <h3>Click Upgrade</h3>
+                        <p>Level saat ini: <span id="shopCurrentLevel">1</span></p>
+                        <p>Points per click: <span id="shopCurrentPoints">1</span></p>
+                    </div>
+                    <button id="upgradeBtn" class="btn-upgrade">
+                        UPGRADE
+                        <span class="cost">Cost: <span id="upgradeCost">10000</span> pts</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboardModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 LEADERBOARD MINGGUAN</h2>
+                <button class="close-btn" id="closeLeaderboard">✕</button>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <div class="loading">Memuat data...</div>
+            </div>
+            <div class="leaderboard-timer">
+                Reset dalam: <span id="countdownTimer">6 hari 23:59:59</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, orderBy, limit, getDocs, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
         
-        // Membaca file audio lokal di folder yang sama
-        const audioSources = [
-            "lawan.mp3",
-            "hidup.mp3",
-            "kaget.mp3"
-        ];
+        // Konfigurasi Firebase (GANTI DENGAN KONFIGURASI ANDA)
+         const firebaseConfig = {
+    apiKey: "AIzaSyAUzAP9DKp7CdRbVXpOo73VJhdcFTW3HJI",
+    authDomain: "owi-game.firebaseapp.com",
+    projectId: "owi-game",
+    storageBucket: "owi-game.firebasestorage.app",
+    messagingSenderId: "477452421326",
+    appId: "1:477452421326:web:488b718154f1615ff9e89f"
+        };
 
-        let count = parseInt(localStorage.getItem('herta_count')) || 0;
-        counterEl.textContent = count;
-
-        kuruBtn.addEventListener('click', () => {
-            count++;
-            counterEl.textContent = count;
-            localStorage.setItem('herta_count', count);
-
-            const randomAudioSrc = audioSources[Math.floor(Math.random() * audioSources.length)];
-            const audio = new Audio(randomAudioSrc);
-            audio.play();
-
-            createHertaSpur();
-        });
-
-        function createHertaSpur() {
-            const img = document.createElement('img');
-            img.src = hertaGif;
-            img.classList.add('herta-animation');
-
-            const randomBottom = Math.floor(Math.random() * 20) + 5;
-            img.style.bottom = `${randomBottom}%`;
-
-            document.body.appendChild(img);
-
-            setTimeout(() => {
-                img.remove();
-            }, 1500);
-        }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Export untuk digunakan di script.js
+        window.firebaseDB = db;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseGetDoc = getDoc;
+        window.firebaseUpdateDoc = updateDoc;
+        window.firebaseIncrement = increment;
+        window.firebaseCollection = collection;
+        window.firebaseQuery = query;
+        window.firebaseOrderBy = orderBy;
+        window.firebaseLimit = limit;
+        window.firebaseGetDocs = getDocs;
+        window.firebaseOnSnapshot = onSnapshot;
+        window.firebaseServerTimestamp = serverTimestamp;
     </script>
+    
+    <script src="script.js"></script>
 </body>
 </html>
